@@ -22,15 +22,15 @@ server <- function(input, output){
 
   #' GM (1, 1) model
   #' Input original data from excel
-  dat <- reactive({
+
+  dat <- eventReactive(input$file1, {
+
     inFile <- input$file1
     if (is.null(inFile))
       return(NULL)
     req(input$file1)
-
     dat1 <- read_excel(inFile$datapath, 1)
-    dat2 <- c(dat1)
-    dat3 <- as.numeric(unlist(dat2))
+    dat2 <- as.numeric(unlist(dat1))
 
   })
 
@@ -75,7 +75,6 @@ server <- function(input, output){
       dat2 <- c(dat1)
       dat3 <- as.numeric(unlist(dat2))
     }
-
   })
 
   #' Input original data from excel - Extended Forms - Out-sample
@@ -238,12 +237,11 @@ server <- function(input, output){
   })
 
 
-  #' GM (1,1) model Fitted - reactive
+  #' GM (1,1) model Fitted - Event reactive
   #' Fitted values
-  x0capgm11 <- reactive({
+  x0capgm11 <- eventReactive(input$file1, {
 
     x0 <- dat()
-    source("bv.R")
     gm11(x0)
 
   })
@@ -253,12 +251,11 @@ server <- function(input, output){
   output$fittedgm <- renderTable({
 
     Actual <- dat()
-    actual2 <- t(Actual)
-    n <- length(actual2)
+    n <- length(Actual)
     fitted1 <- x0capgm11()
-    fitted2 <- t(fitted1)
-    Fitted <- fitted2[1:n]
+    Fitted <- fitted1[1:n]
     dfgm11 <- data.frame(Actual,Fitted)
+
 
   })
 
@@ -268,8 +265,7 @@ server <- function(input, output){
     output$gmpv <- renderPrint({input$radiogm})
 
     actual1 <- dat()
-    actual2 <- t(dat())
-    n <- length(actual2)
+    n <- length(actual1)
     fitted1 <- x0capgm11()
     x <- input$radiogm
     fitted3 <- tail(fitted1,4)
@@ -283,13 +279,10 @@ server <- function(input, output){
   output$errorgm <- renderTable({
 
     Actual <- dat()
-    actual2 <- t(Actual)
-    n <- length(actual2)
+    n <- length(Actual)
     fitted1 <- x0capgm11()
-    fitted2 <- t(fitted1)
-    Fitted <- fitted2[1:n]
+    Fitted <- fitted1[1:n]
     gm11 <- data.frame(Actual,Fitted)
-
     MAPE <- mape(Actual,Fitted)*100
     RMSE <- rmse(Actual,Fitted)
     pe <- data.frame(MAPE,RMSE)
@@ -309,9 +302,7 @@ server <- function(input, output){
       x <- input$radiogm
       ci <- 90
 
-      source("confidence_interval.R")
       CIvalue(fp1,actual1,x,ci)
-
 
 
 
@@ -324,7 +315,6 @@ server <- function(input, output){
       x <- input$radiogm
       ci <- 95
 
-      source("confidence_interval.R")
       CIvalue(fp1,actual1,x,ci)
 
     } else if (input$radiocigm == "99") {
@@ -336,7 +326,6 @@ server <- function(input, output){
       x <- input$radiogm
       ci <- 99
 
-      source("confidence_interval.R")
       CIvalue(fp1,actual1,x,ci)
     }
 
@@ -353,7 +342,6 @@ server <- function(input, output){
       ci <- 90
       model <- 'GM (1, 1) model'
 
-      source("plots.R")
       plots(x0,x0cap2,ci,model)
 
 
@@ -364,7 +352,6 @@ server <- function(input, output){
       ci <- 95
       model <- 'GM (1, 1) model'
 
-      source("plots.R")
       plots(x0,x0cap2,ci,model)
 
 
@@ -375,7 +362,6 @@ server <- function(input, output){
       ci <- 99
       model <- 'GM (1, 1) model'
 
-      source("plots.R")
       plots(x0,x0cap2,ci,model)
 
     }
@@ -383,12 +369,11 @@ server <- function(input, output){
   })
 
   #' Improved Background Values Models
-  #' EPGM (1,1) model Fitted - reactive
+  #' EPGM (1,1) model Fitted - Event reactive
   #' Fitted values
-  x0capepgm <- reactive({
+  x0capepgm <- eventReactive(input$file2, {
 
     x0 <- datbv()
-    source("bv.R")
     epgm11(x0)
 
 
@@ -396,30 +381,27 @@ server <- function(input, output){
 
   #' TBGM (1,1) model Fitted - reactive
   #' Fitted values
-  x0captbgm <- reactive({
+  x0captbgm <- eventReactive(input$file2, {
 
     x0 <- datbv()
-    source("bv.R")
     tbgm11(x0)
 
   })
 
   #' IGM (1,1) model Fitted - reactive
   #' Fitted values
-  x0capigm <- reactive({
+  x0capigm <- eventReactive(input$file2, {
 
     x0 <- datbv()
-    source("bv.R")
     igm11(x0)
 
   })
 
   #' GM (1,1,4) model Fitted - reactive
   #' Fitted values
-  x0capgm114 <- reactive({
+  x0capgm114 <- eventReactive(input$file2, {
 
     x0 <- datbv()
-    source("bv.R")
     gm114(x0)
 
   })
@@ -439,12 +421,11 @@ server <- function(input, output){
       })
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capepgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       epgm11 <- data.frame(Actual,Fitted)
+
 
     } else if (input$radiobv == "TBGM (1, 1) model") {
 
@@ -458,11 +439,9 @@ server <- function(input, output){
       })
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0captbgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       tbgm11 <- data.frame(Actual,Fitted)
 
     } else if (input$radiobv == "IGM (1, 1) model") {
@@ -477,11 +456,9 @@ server <- function(input, output){
       })
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capigm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       igm11 <- data.frame(Actual,Fitted)
 
     } else if (input$radiobv == "GM (1, 1, 4) model") {
@@ -496,11 +473,9 @@ server <- function(input, output){
       })
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capgm114()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       gm114 <- data.frame(Actual,Fitted)
 
     }
@@ -516,8 +491,7 @@ server <- function(input, output){
       output$bvpv <- renderPrint({input$radiobv1})
 
       actual1 <- datbv()
-      actual2 <- t(datbv())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capepgm()
       x <- input$radiobv1
       fitted3 <- tail(fitted1,4)
@@ -529,8 +503,7 @@ server <- function(input, output){
       output$bvpv <- renderPrint({input$radiobv1})
 
       actual1 <- datbv()
-      actual2 <- t(datbv())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0captbgm()
       x <- input$radiobv1
       fitted3 <- tail(fitted1,4)
@@ -542,8 +515,7 @@ server <- function(input, output){
       output$bvpv <- renderPrint({input$radiobv1})
 
       actual1 <- datbv()
-      actual2 <- t(datbv())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capigm()
       x <- input$radiobv1
       fitted3 <- tail(fitted1,4)
@@ -555,8 +527,7 @@ server <- function(input, output){
       output$bvpv <- renderPrint({input$radiobv1})
 
       actual1 <- datbv()
-      actual2 <- t(datbv())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capgm114()
       x <- input$radiobv1
       fitted3 <- tail(fitted1,4)
@@ -572,11 +543,9 @@ server <- function(input, output){
     if (input$radiobv == "EPGM (1, 1) model") {
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capepgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -584,11 +553,9 @@ server <- function(input, output){
     } else if (input$radiobv == "TBGM (1, 1) model") {
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0captbgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -596,11 +563,9 @@ server <- function(input, output){
     } else if (input$radiobv == "IGM (1, 1) model") {
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capigm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -608,11 +573,9 @@ server <- function(input, output){
     } else if (input$radiobv == "GM (1, 1, 4) model") {
 
       Actual <- datbv()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capgm114()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -636,7 +599,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -650,7 +612,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiobv2 == "99") {
@@ -662,7 +623,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -677,7 +637,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -690,7 +649,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiobv2 == "99") {
@@ -702,7 +660,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -717,7 +674,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -730,7 +686,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiobv2 == "99") {
@@ -742,7 +697,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -757,7 +711,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -770,7 +723,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -783,7 +735,6 @@ server <- function(input, output){
         x <- input$radiobv1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       }
@@ -803,7 +754,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'EPGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiobv2 == "95") {
@@ -813,7 +763,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'EPGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiobv2 == "99") {
@@ -823,7 +772,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'EPGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -838,7 +786,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'TBGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -850,7 +797,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'TBGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiobv2 == "99") {
@@ -861,7 +807,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'TBGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -877,7 +822,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'IGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiobv2 == "95") {
@@ -888,7 +832,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'IGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -900,7 +843,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'IGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -916,7 +858,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GM (1, 1, 4) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiobv2 == "95") {
@@ -927,7 +868,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GM (1, 1, 4) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -939,7 +879,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GM (1, 1, 4) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -948,22 +887,20 @@ server <- function(input, output){
 
 
   #' Extended Forms of Grey Models
-  #' DGM (1,1) model Fitted - reactive
+  #' DGM (1,1) model Fitted - Event reactive
   #' Fitted values and predicted values
-  x0capdgm11 <- reactive({
+  x0capdgm11 <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     dgm11(x0)
 
   })
 
   #' DGM (2,1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capdgm21 <- reactive({
+  x0capdgm21 <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     dgm21(x0)
 
   })
@@ -971,10 +908,9 @@ server <- function(input, output){
 
   #' ODGM (2,1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capodgm21 <- reactive({
+  x0capodgm21 <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     odgm21(x0)
 
   })
@@ -982,10 +918,9 @@ server <- function(input, output){
 
   #' NDGM (1,1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capndgm <- reactive({
+  x0capndgm <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     ndgm11(x0)
 
   })
@@ -993,19 +928,18 @@ server <- function(input, output){
 
   #' EGM (1,1) model Fitted - reactive
   #' Fitted values
-  x0capegm <- reactive({
+  x0capegm <- eventReactive(c(input$file31,input$file311),{
 
     dfdata1 <- datinef()
-    dfdata2 <- data.frame(dfdata1)
-    k <- dfdata2[ ,1]
-    x0 <- dfdata2[ ,2]
+    k <- dfdata1[ ,1]
+    x0 <- dfdata1[ ,2]
 
     data_A <- datoutef()
-    dfdata_A <- data.frame(data_A)
-    k_A <- dfdata_A[ ,1]
-    x0_A <- dfdata_A[ ,2]
+    k_A <- data_A[ ,1]
+    x0_A <- data_A[ ,2]
 
-    source("ef.R")
+    m <- length(k_A)
+
     egm11(k,x0,k_A,x0_A)
 
   })
@@ -1013,10 +947,9 @@ server <- function(input, output){
 
   #' VSSGM (1,1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capvssgm <- reactive({
+  x0capvssgm <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     vssgm11(x0)
 
   })
@@ -1024,20 +957,18 @@ server <- function(input, output){
 
   #' GOM (1, 1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capgom <- reactive({
+  x0capgom <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     gom11(x0)
 
   })
 
   #' GOM_IA (1, 1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capgomia <- reactive({
+  x0capgomia <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     gomia11(x0)
 
   })
@@ -1045,21 +976,19 @@ server <- function(input, output){
 
   #' unbiased GOM (1, 1) model Fitted - reactive
   #' Fitted values and predicted values
-  x0capungom <- reactive({
+  x0capungom <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     ungom11(x0)
 
   })
 
 
-  #' EXGM (1, 1) model Fitted - reactive
+  #' EXGM (1, 1) model Fitted - Event reactive
   #' Fitted values and predicted values
-  x0capexgm <- reactive({
+  x0capexgm <- eventReactive(input$file3, {
 
     x0 <- datef()
-    source("ef.R")
     exgm11(x0)
 
   })
@@ -1080,11 +1009,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capdgm11()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfdgm11 <- data.frame(Actual,Fitted)
 
     } else if (input$radioef == "DGM (2, 1)") {
@@ -1099,11 +1026,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capdgm21()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfdgm21 <- data.frame(Actual,Fitted)
 
     } else if (input$radioef == "ODGM (2, 1)") {
@@ -1118,11 +1043,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capodgm21()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfodgm21 <- data.frame(Actual,Fitted)
 
     } else if (input$radioef == "NDGM (1, 1)") {
@@ -1137,11 +1060,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capndgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfndgm <- data.frame(Actual,Fitted)
 
 
@@ -1157,11 +1078,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capvssgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfvssgm <- data.frame(Actual,Fitted)
 
     } else if (input$radioef == "GOM (1, 1)") {
@@ -1176,11 +1095,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capgom()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfgom <- data.frame(Actual,Fitted)
 
     } else if (input$radioef == "GOM_IA (1, 1)") {
@@ -1196,11 +1113,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capgomia()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfgomia <- data.frame(Actual,Fitted)
 
     } else if (input$radioef == "unbiased GOM (1, 1)") {
@@ -1215,11 +1130,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capungom()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfungom <- data.frame(Actual,Fitted)
 
 
@@ -1235,11 +1148,9 @@ server <- function(input, output){
       })
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capexgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfexgm <- data.frame(Actual,Fitted)
     }
   })
@@ -1251,8 +1162,7 @@ server <- function(input, output){
     if (input$radioef == "DGM (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capdgm11()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1261,8 +1171,7 @@ server <- function(input, output){
     } else if (input$radioef == "DGM (2, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capdgm21()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1271,8 +1180,7 @@ server <- function(input, output){
     } else if (input$radioef == "ODGM (2, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capodgm21()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1281,8 +1189,7 @@ server <- function(input, output){
     } else if (input$radioef == "NDGM (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capndgm()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1291,8 +1198,7 @@ server <- function(input, output){
     } else if (input$radioef == "VSSGM (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capvssgm()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1301,8 +1207,7 @@ server <- function(input, output){
     } else if (input$radioef == "GOM (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capgom()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1311,8 +1216,7 @@ server <- function(input, output){
     } else if (input$radioef == "GOM_IA (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capgomia()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1321,8 +1225,7 @@ server <- function(input, output){
     } else if (input$radioef == "unbiased GOM (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capungom()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1331,8 +1234,7 @@ server <- function(input, output){
     } else if (input$radioef == "EXGM (1, 1)") {
 
       actual1 <- datef()
-      actual2 <- t(datef())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capexgm()
       x <- input$radioef1
       fitted3 <- tail(fitted1,4)
@@ -1357,9 +1259,8 @@ server <- function(input, output){
       })
 
       actual1 <- datinef()
-      dfdata2 <- data.frame(actual1)
-      k  <- dfdata2[ ,1]
-      x0 <- dfdata2[ ,2]
+      k  <- actual1[ ,1]
+      x0 <- actual1[ ,2]
       n <- length(x0)
       fitted1 <- x0capegm()
       fitted <- fitted1[1:n]
@@ -1367,7 +1268,6 @@ server <- function(input, output){
       colnames(dfegm , do.NULL = FALSE)
       colnames(dfegm) <- c("Original","Fitted")
       dfegm
-
 
     }
   })
@@ -1378,15 +1278,13 @@ server <- function(input, output){
     if (input$radiooutef == "EGM (1, 1) model") {
 
       actual1 <- datinef()
-      dfdata2 <- data.frame(actual1)
-      k  <- dfdata2[ ,1]
-      x0 <- dfdata2[ ,2]
+      k  <- actual1[ ,1]
+      x0 <- actual1[ ,2]
       n <- length(x0)
       fitted1 <- x0capegm()
       x <- input$radiooutef1
       fitted3 <- tail(fitted1,4)
       fitted4 <- t(fitted3[1:x])
-
 
     }
   })
@@ -1399,11 +1297,9 @@ server <- function(input, output){
     if (input$radioef == "DGM (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capdgm11()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1411,11 +1307,9 @@ server <- function(input, output){
     } else if (input$radioef == "DGM (2, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capdgm21()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1423,11 +1317,9 @@ server <- function(input, output){
     } else if (input$radioef == "ODGM (2, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capodgm21()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1435,11 +1327,9 @@ server <- function(input, output){
     } else if (input$radioef == "NDGM (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capndgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1447,11 +1337,9 @@ server <- function(input, output){
     } else if (input$radioef == "VSSGM (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capvssgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1459,11 +1347,9 @@ server <- function(input, output){
     } else if (input$radioef == "GOM (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capgom()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1471,11 +1357,9 @@ server <- function(input, output){
     } else if (input$radioef == "GOM_IA (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capgomia()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1483,11 +1367,9 @@ server <- function(input, output){
     } else if (input$radioef == "unbiased GOM (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capungom()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1496,11 +1378,9 @@ server <- function(input, output){
     }else if (input$radioef == "EXGM (1, 1)") {
 
       Actual <- datef()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capexgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -1516,9 +1396,8 @@ server <- function(input, output){
     if (input$radiooutef == "EGM (1, 1) model") {
 
       actual1 <- datinef()
-      dfdata2 <- data.frame(actual1)
-      k  <- dfdata2[ ,1]
-      x0 <- dfdata2[ ,2]
+      k  <- actual1[ ,1]
+      x0 <- actual1[ ,2]
       n <- length(x0)
       fitted1 <- x0capegm()
       fitted2 <- t(fitted1)
@@ -1543,13 +1422,11 @@ server <- function(input, output){
 
         fp1 <- x0capegm()
         actual1 <- datinef()
-        dfdata2 <- data.frame(actual1)
-        k  <- dfdata2[ ,1]
-        actual2 <- dfdata2[ ,2]
+        k  <- actual1[ ,1]
+        actual2 <- actual1[ ,2]
         ci <- 90
         x <- input$radiooutef1
 
-        source("CIplots_egm.R")
         CIvalue(fp1,actual2,x,ci)
 
 
@@ -1559,14 +1436,13 @@ server <- function(input, output){
 
         fp1 <- x0capegm()
         actual1 <- datinef()
-        dfdata2 <- data.frame(actual1)
-        k  <- dfdata2[ ,1]
-        actual2 <- dfdata2[ ,2]
+        k  <- actual1[ ,1]
+        actual2 <- actual1[ ,2]
         ci <- 95
         x <- input$radiooutef1
 
-        source("CIplots_egm.R")
         CIvalue(fp1,actual2,x,ci)
+
 
 
       } else if (input$radiooutef2 == "99") {
@@ -1575,13 +1451,11 @@ server <- function(input, output){
 
         fp1 <- x0capegm()
         actual1 <- datinef()
-        dfdata2 <- data.frame(actual1)
-        k  <- dfdata2[ ,1]
-        actual2 <- dfdata2[ ,2]
+        k  <- actual1[ ,1]
+        actual2 <- actual1[ ,2]
         ci <- 99
         x <- input$radiooutef1
 
-        source("CIplots_egm.R")
         CIvalue(fp1,actual2,x,ci)
 
       }
@@ -1598,38 +1472,39 @@ server <- function(input, output){
 
         x0cap2 <- x0capegm()
         actual1 <- datinef()
-        dfdata2 <- data.frame(actual1)
-        k  <- dfdata2[ ,1]
-        x0 <- dfdata2[ ,2]
+        k  <- actual1[ ,1]
+        x0 <- actual1[ ,2]
         ci <- 90
+        model <- 'EGM (1, 1) model'
 
-        source("CIplots_egm.R")
-        plotegm(x0,x0cap2,ci)
+        plots(x0,x0cap2,ci,model)
+
 
 
       } else if (input$radiooutef2 == "95") {
 
         x0cap2 <- x0capegm()
         actual1 <- datinef()
-        dfdata2 <- data.frame(actual1)
-        k  <- dfdata2[ ,1]
-        x0 <- dfdata2[ ,2]
+        k  <- actual1[ ,1]
+        x0 <- actual1[ ,2]
         ci <- 95
 
-        source("CIplots_egm.R")
-        plotegm(x0,x0cap2,ci)
+        model <- 'EGM (1, 1) model'
+
+        plots(x0,x0cap2,ci,model)
+
 
       } else if (input$radiooutef2 == "99") {
 
         x0cap2 <- x0capegm()
         actual1 <- datinef()
-        dfdata2 <- data.frame(actual1)
-        k  <- dfdata2[ ,1]
-        x0 <- dfdata2[ ,2]
+        k  <- actual1[ ,1]
+        x0 <- actual1[ ,2]
         ci <- 99
 
-        source("CIplots_egm.R")
-        plotegm(x0,x0cap2,ci)
+        model <- 'EGM (1, 1) model'
+
+        plots(x0,x0cap2,ci,model)
 
 
       }
@@ -1653,7 +1528,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1666,7 +1540,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1678,7 +1551,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1694,7 +1566,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "95") {
@@ -1706,7 +1577,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1718,7 +1588,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1734,7 +1603,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1747,7 +1615,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1759,7 +1626,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1775,7 +1641,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1789,7 +1654,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1801,7 +1665,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1817,7 +1680,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "95") {
@@ -1829,7 +1691,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1841,7 +1702,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1857,7 +1717,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1870,7 +1729,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1882,7 +1740,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1898,7 +1755,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1911,7 +1767,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1923,7 +1778,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1939,7 +1793,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1952,7 +1805,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioef2 == "99") {
@@ -1964,7 +1816,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -1980,7 +1831,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -1993,7 +1843,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -2006,7 +1855,6 @@ server <- function(input, output){
         x <- input$radioef1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
     }
@@ -2027,7 +1875,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'DGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radioef2 == "95") {
@@ -2037,7 +1884,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'DGM (1, 1) model '
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radioef2 == "99") {
@@ -2047,7 +1893,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'DGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2061,7 +1906,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'DGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2072,7 +1916,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'DGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radioef2 == "99") {
@@ -2082,7 +1925,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'DGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2095,7 +1937,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'ODGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2106,7 +1947,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'ODGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radioef2 == "99") {
@@ -2116,7 +1956,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'ODGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2131,7 +1970,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'NDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2142,7 +1980,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'NDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2153,7 +1990,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'NDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
       }
 
@@ -2167,7 +2003,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'VSSGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2178,7 +2013,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'VSSGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2189,7 +2023,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'VSSGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2204,7 +2037,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GOM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2215,7 +2047,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GOM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2226,7 +2057,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GOM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2240,7 +2070,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GOM_IA (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2251,7 +2080,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GOM_IA (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2262,7 +2090,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GOM_IA (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2277,7 +2104,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'unbiased GOM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2288,7 +2114,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'unbiased GOM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2299,7 +2124,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'unbiased GOM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2313,7 +2137,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'EXGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2324,7 +2147,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'EXGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2335,7 +2157,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'EXGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2348,30 +2169,27 @@ server <- function(input, output){
 
   #' NGBM (1, 1) model Fitted - reactive
   #' Fitted values
-  x0capngbm <- reactive({
+  x0capngbm <- eventReactive(input$file4, {
 
     x0 <- datcm()
-    source("cm.R")
     ngbm11(x0)
 
   })
 
   #' GGVM (1, 1) model Fitted - reactive
   #' Fitted values
-  x0capggvm <- reactive({
+  x0capggvm <- eventReactive(input$file4, {
 
     x0 <- datcm()
-    source("cm.R")
     ggvm11(x0)
 
   })
 
   #' TFDGM(1, 1) model Fitted - reactive
   #' Fitted values
-  x0captfdgm <- reactive({
+  x0captfdgm <- eventReactive(input$file4, {
 
     x0 <- datcm()
-    source("cm.R")
     tfdgm11(x0)
 
   })
@@ -2392,11 +2210,9 @@ server <- function(input, output){
       })
 
       Actual <- datcm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capngbm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       epgm11 <- data.frame(Actual,Fitted)
 
     } else if (input$radiocm == "GGVM (1, 1) model") {
@@ -2411,11 +2227,9 @@ server <- function(input, output){
       })
 
       Actual <- datcm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capggvm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       epgm11 <- data.frame(Actual,Fitted)
 
     } else if (input$radiocm == "TFDGM (1, 1) model") {
@@ -2430,11 +2244,9 @@ server <- function(input, output){
       })
 
       Actual <- datcm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0captfdgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       epgm11 <- data.frame(Actual,Fitted)
 
     }
@@ -2449,8 +2261,7 @@ server <- function(input, output){
       output$cmpv <- renderPrint({input$radiocm1})
 
       actual1 <- datcm()
-      actual2 <- t(datcm())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capngbm()
       x <- input$radiocm1
       fitted3 <- tail(fitted1,4)
@@ -2461,8 +2272,7 @@ server <- function(input, output){
       output$cmpv <- renderPrint({input$radiocm1})
 
       actual1 <- datcm()
-      actual2 <- t(datcm())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capggvm()
       x <- input$radiocm1
       fitted3 <- tail(fitted1,4)
@@ -2473,8 +2283,7 @@ server <- function(input, output){
       output$cmpv <- renderPrint({input$radiocm1})
 
       actual1 <- datcm()
-      actual2 <- t(datcm())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0captfdgm()
       x <- input$radiocm1
       fitted3 <- tail(fitted1,4)
@@ -2490,11 +2299,9 @@ server <- function(input, output){
     if (input$radiocm == "NGBM (1, 1) model") {
 
       Actual <- datcm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capngbm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -2502,11 +2309,9 @@ server <- function(input, output){
     } else if (input$radiocm == "GGVM (1, 1) model") {
 
       Actual <- datcm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capggvm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -2514,11 +2319,9 @@ server <- function(input, output){
     } else if (input$radiocm == "TFDGM (1, 1) model") {
 
       Actual <- datcm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0captfdgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -2542,7 +2345,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -2555,7 +2357,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiocm2 == "99") {
@@ -2567,7 +2368,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -2583,7 +2383,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiocm2 == "95") {
@@ -2595,7 +2394,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiocm2 == "99") {
@@ -2607,7 +2405,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -2623,7 +2420,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -2636,7 +2432,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiocm2 == "99") {
@@ -2648,7 +2443,6 @@ server <- function(input, output){
         x <- input$radiocm1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
     }
@@ -2668,7 +2462,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'NGBM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2679,7 +2472,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'NGBM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2690,7 +2482,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'NGBM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2704,7 +2495,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GGVM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2715,7 +2505,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GGVM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2726,7 +2515,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GGVM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2740,7 +2528,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'TFDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2751,7 +2538,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'TFDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -2762,7 +2548,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'TFDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -2771,12 +2556,11 @@ server <- function(input, output){
 
 
   #' Parameters Estimation
-  #' SOGM (2,1) model Fitted - reactive
+  #' SOGM (2,1) model Fitted - Event reactive
   #' Fitted values
-  x0capsogm21 <- reactive({
+  x0capsogm21 <- eventReactive(input$file5, {
 
     x0 <- datpe()
-    source("pe.R")
     sogm21(x0)
 
   })
@@ -2784,10 +2568,9 @@ server <- function(input, output){
 
   #' NGM (1,1,k) model Fitted - reactive
   #' Fitted values
-  x0capngm11k <- reactive({
+  x0capngm11k <- eventReactive(input$file5, {
 
     x0 <- datpe()
-    source("pe.R")
     ngm11k(x0)
 
   })
@@ -2795,20 +2578,18 @@ server <- function(input, output){
 
   #' NGM (1,1,k,c) model Fitted - reactive
   #' Fitted values
-  x0capngm11kc <- reactive({
+  x0capngm11kc <- eventReactive(input$file5, {
 
     x0 <- datpe()
-    source("pe.R")
     ngm11kc(x0)
 
   })
 
   #' ONGM (1,1,k,c) model Fitted - reactive
   #' Fitted values
-  x0capongm11kc <- reactive({
+  x0capongm11kc <- eventReactive(input$file5, {
 
     x0 <- datpe()
-    source("pe.R")
     ongm11kc(x0)
 
 
@@ -2831,11 +2612,9 @@ server <- function(input, output){
       })
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capsogm21()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       sogm21 <- data.frame(Actual,Fitted)
 
     } else if (input$radiope == "NGM (1, 1, k) model") {
@@ -2850,12 +2629,10 @@ server <- function(input, output){
       })
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capngm11k()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
-      sogm21 <- data.frame(Actual,Fitted)
+      Fitted <- fitted1[1:n]
+      ngm11k <- data.frame(Actual,Fitted)
 
     } else if (input$radiope == "NGM (1, 1, k, c) model") {
 
@@ -2869,12 +2646,10 @@ server <- function(input, output){
       })
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capngm11kc()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
-      sogm21 <- data.frame(Actual,Fitted)
+      Fitted <- fitted1[1:n]
+      ngm11kc <- data.frame(Actual,Fitted)
 
     } else if (input$radiope == "ONGM (1, 1, k, c) model") {
 
@@ -2888,12 +2663,10 @@ server <- function(input, output){
       })
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capongm11kc()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
-      sogm21 <- data.frame(Actual,Fitted)
+      Fitted <- fitted1[1:n]
+      ongm11k <- data.frame(Actual,Fitted)
     }
   })
 
@@ -2906,8 +2679,7 @@ server <- function(input, output){
       output$pepv <- renderPrint({input$radiope1})
 
       actual1 <- datpe()
-      actual2 <- t(datpe())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capsogm21()
       x <- input$radiope1
       fitted3 <- tail(fitted1,4)
@@ -2919,8 +2691,7 @@ server <- function(input, output){
       output$pepv <- renderPrint({input$radiope1})
 
       actual1 <- datpe()
-      actual2 <- t(datpe())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capngm11k()
       x <- input$radiope1
       fitted3 <- tail(fitted1,4)
@@ -2932,8 +2703,7 @@ server <- function(input, output){
       output$pepv <- renderPrint({input$radiope1})
 
       actual1 <- datpe()
-      actual2 <- t(datpe())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capngm11kc()
       x <- input$radiope1
       fitted3 <- tail(fitted1,4)
@@ -2944,8 +2714,7 @@ server <- function(input, output){
       output$pepv <- renderPrint({input$radiope1})
 
       actual1 <- datpe()
-      actual2 <- t(datpe())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capongm11kc()
       x <- input$radiope1
       fitted3 <- tail(fitted1,4)
@@ -2960,11 +2729,9 @@ server <- function(input, output){
     if (input$radiope == "SOGM (2, 1) model") {
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capsogm21()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -2972,11 +2739,9 @@ server <- function(input, output){
     } else if (input$radiope == "NGM (1, 1, k) model") {
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capngm11k()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -2984,11 +2749,9 @@ server <- function(input, output){
     } else if (input$radiope == "NGM (1, 1, k, c) model") {
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capngm11kc()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -2996,11 +2759,9 @@ server <- function(input, output){
     } else if (input$radiope == "ONGM (1, 1, k, c) model") {
 
       Actual <- datpe()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capongm11kc()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -3023,7 +2784,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3036,7 +2796,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3049,7 +2808,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       }
@@ -3065,7 +2823,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3078,7 +2835,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3091,7 +2847,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       }
@@ -3108,7 +2863,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiope2 == "95") {
@@ -3120,7 +2874,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3133,7 +2886,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -3148,7 +2900,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3161,7 +2912,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
 
@@ -3174,7 +2924,6 @@ server <- function(input, output){
         x <- input$radiope1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
     }
@@ -3193,7 +2942,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'SOGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiope2 == "95") {
@@ -3203,7 +2951,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'SOGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiope2 == "99") {
@@ -3213,7 +2960,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'SOGM (2, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -3227,7 +2973,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'NGM (1, 1, k) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3238,7 +2983,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'NGM (1, 1, k) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3249,7 +2993,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'NGM (1, 1, k) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3264,7 +3007,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'NGM (1, 1, k, c) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiope2 == "95") {
@@ -3274,7 +3016,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'NGM (1, 1, k, c) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiope2 == "99") {
@@ -3284,7 +3025,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'NGM (1, 1, k, c) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -3298,7 +3038,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'ONGM (1, 1, k, c) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiope2 == "95") {
@@ -3308,7 +3047,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'ONGM (1, 1, k, c) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radiope2 == "99") {
@@ -3318,7 +3056,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'ONGM (1, 1, k, c) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -3329,10 +3066,9 @@ server <- function(input, output){
   #' Optimization of parameters
   #' PSO-GM (1, 1) model Fitted - reactive
   #' optimal values a and b
-  optpsogm <- reactive({
+  optpsogm <- eventReactive(input$file6, {
 
     x0 <- datopt()
-    source("opt.R")
     optim_psogm(x0)
 
   })
@@ -3340,10 +3076,9 @@ server <- function(input, output){
 
   #' EGM (1, 1, r) model Fitted - reactive
   #' optimal value r
-  optegm11r <- reactive({
+  optegm11r <- eventReactive(input$file6, {
 
     x0 <- datopt()
-    source("opt.R")
     optim_egm11r(x0)
 
   })
@@ -3351,10 +3086,9 @@ server <- function(input, output){
 
   #' ANDGM (1, 1) model  - reactive
   #' Optimal value
-  optandgm <- reactive({
+  optandgm <- eventReactive(input$file6, {
 
     x0 <- datopt()
-    source("opt.R")
     optim_andgm(x0)
 
   })
@@ -3363,10 +3097,9 @@ server <- function(input, output){
   #' Optimization-based grey models
   #' PSO-GM (1, 1) model Fitted - reactive
   #' Fitted values
-  x0cappsogm <- reactive({
+  x0cappsogm <- eventReactive(input$file6, {
 
     x0 <- datopt()
-    source("opt.R")
     psogm11(x0)
 
 
@@ -3375,10 +3108,9 @@ server <- function(input, output){
 
   #' EGM (1, 1, r) model Fitted - reactive
   #' Fitted values
-  x0capegm11r <- reactive({
+  x0capegm11r <- eventReactive(input$file6, {
 
     x0 <- datopt()
-    source("opt.R")
     egm11r(x0)
 
   })
@@ -3386,10 +3118,9 @@ server <- function(input, output){
 
   #' ANDGM (1, 1) model Fitted - reactive
   #' Fitted values
-  x0capandgm <- reactive({
+  x0capandgm <- eventReactive(input$file6, {
 
     x0 <- datopt()
-    source("opt.R")
     andgm11(x0)
   })
 
@@ -3405,11 +3136,9 @@ server <- function(input, output){
       })
 
       Actual <- datopt()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0cappsogm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       psogm <- data.frame(Actual,Fitted)
 
 
@@ -3427,12 +3156,11 @@ server <- function(input, output){
 
 
       Actual <- datopt()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capegm11r()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       egm11r <- data.frame(Actual,Fitted)
+
 
     } else if (input$radioopt == "ANDGM (1, 1) model") {
 
@@ -3447,14 +3175,13 @@ server <- function(input, output){
 
 
       Actual <- datopt()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capandgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       andgm11 <- data.frame(Actual,Fitted)
     }
   })
+
 
   #' Optimal values - render
   #' Optimization-based Models
@@ -3485,8 +3212,7 @@ server <- function(input, output){
       output$optpv <- renderPrint({input$radioopt1})
 
       actual1 <- datopt()
-      actual2 <- t(datopt())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0cappsogm()
       x <- input$radioopt1
       fitted3 <- tail(fitted1,4)
@@ -3497,8 +3223,7 @@ server <- function(input, output){
       output$optpv <- renderPrint({input$radioopt1})
 
       actual1 <- datopt()
-      actual2 <- t(datopt())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capegm11r()
       x <- input$radioopt1
       fitted3 <- tail(fitted1,4)
@@ -3507,8 +3232,7 @@ server <- function(input, output){
     } else if (input$radioopt == "ANDGM (1, 1) model") {
 
       actual1 <- datopt()
-      actual2 <- t(datopt())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capandgm()
       x <- input$radioopt1
       fitted3 <- tail(fitted1,4)
@@ -3523,11 +3247,9 @@ server <- function(input, output){
     if (input$radioopt == "PSO-GM (1, 1) model") {
 
       Actual <- datopt()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0cappsogm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -3535,11 +3257,9 @@ server <- function(input, output){
     } else if (input$radioopt == "EGM (1, 1, r) model") {
 
       Actual <- datopt()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capegm11r()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -3547,11 +3267,9 @@ server <- function(input, output){
     } else if (input$radioopt == "ANDGM (1, 1) model") {
 
       Actual <- datopt()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capandgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -3573,7 +3291,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioopt2 == "95") {
@@ -3585,7 +3302,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioopt2 == "99") {
@@ -3597,7 +3313,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       }
@@ -3613,7 +3328,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioopt2 == "95") {
@@ -3625,7 +3339,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioopt2 == "99") {
@@ -3637,7 +3350,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
       }
 
@@ -3652,7 +3364,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 90
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioopt2 == "95") {
@@ -3664,7 +3375,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 95
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radioopt2 == "99") {
@@ -3676,7 +3386,6 @@ server <- function(input, output){
         x <- input$radioopt1
         ci <- 99
 
-        source("confidence_interval.R")
         CIvalue(fp1,actual1,x,ci)
 
       }
@@ -3697,7 +3406,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'PSO-GM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3708,7 +3416,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'PSO-GM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3719,7 +3426,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'PSO-GM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -3733,7 +3439,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'EGM (1, 1, r) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3744,7 +3449,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'EGM (1, 1, r) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3755,7 +3459,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'EGM (1, 1, r) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -3769,7 +3472,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'ANDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       } else if (input$radioopt2 == "95") {
@@ -3779,7 +3481,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'ANDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
 
@@ -3790,7 +3491,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'ANDGM (1, 1) model'
 
-        source("plots.R")
         plots(x0,x0cap2,ci,model)
 
       }
@@ -3802,24 +3502,23 @@ server <- function(input, output){
 
   #' Remnant (1, 1) model Fitted - reactive
   #' Fitted values
-  x0capremgm <- reactive({
+  x0capremgm <- eventReactive(c(input$file7, input$file71),{
 
     x0 <- datrm()
     x0_A <- datoutrm()
 
-    source("rm.R")
     remnantgm11(x0,x0_A)
+
 
   })
 
   #' TGM (1, 1) model Fitted - reactive
   #' Fitted values
-  x0captgm <- reactive({
+  x0captgm <- eventReactive(c(input$file7, input$file71),{
 
     x0 <- datrm()
     x0_a <- datoutrm()
 
-    source("rm.R")
     tgm11(x0,x0_a)
 
   })
@@ -3840,11 +3539,9 @@ server <- function(input, output){
       })
 
       Actual <- datrm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capremgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       remgm11 <- data.frame(Actual,Fitted)
 
 
@@ -3860,15 +3557,14 @@ server <- function(input, output){
       })
 
       Actual <- datrm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0captgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       tgm11 <- data.frame(Actual,Fitted)
 
     }
   })
+
 
   #' Predicted values - render
   #' Residual Modification
@@ -3879,8 +3575,7 @@ server <- function(input, output){
       output$rmpv <- renderPrint({input$radiorm1})
 
       actual1 <- datrm()
-      actual2 <- t(datrm())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0capremgm()
       x <- input$radiorm1
       fitted3 <- tail(fitted1,4)
@@ -3892,8 +3587,7 @@ server <- function(input, output){
       output$rmpv <- renderPrint({input$radiorm1})
 
       actual1 <- datrm()
-      actual2 <- t(datrm())
-      n <- length(actual2)
+      n <- length(actual1)
       fitted1 <- x0captgm()
       x <- input$radiorm1
       fitted3 <- tail(fitted1,4)
@@ -3910,11 +3604,9 @@ server <- function(input, output){
     if (input$radiorm == "Remnant GM (1, 1) model") {
 
       Actual <- datrm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0capremgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -3923,11 +3615,9 @@ server <- function(input, output){
     } else if (input$radiorm == "TGM (1, 1) model") {
 
       Actual <- datrm()
-      actual2 <- t(Actual)
-      n <- length(actual2)
+      n <- length(Actual)
       fitted1 <- x0captgm()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(Actual,Fitted)*100
       RMSE <- rmse(Actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -3952,7 +3642,6 @@ server <- function(input, output){
         x <- input$radiorm1
         ci <- 90
 
-        source("CIplots_rm.R")
         CI_rm(fp1,actual1,x,ci)
 
       } else if (input$radiorm2 == "95") {
@@ -3964,7 +3653,6 @@ server <- function(input, output){
         x <- input$radiorm1
         ci <- 95
 
-        source("CIplots_rm.R")
         CI_rm(fp1,actual1,x,ci)
 
 
@@ -3977,7 +3665,6 @@ server <- function(input, output){
         x <- input$radiorm1
         ci <- 99
 
-        source("CIplots_rm.R")
         CI_rm(fp1,actual1,x,ci)
 
       }
@@ -3993,7 +3680,6 @@ server <- function(input, output){
         x <- input$radiorm1
         ci <- 90
 
-        source("CIplots_rm.R")
         CI_rm(fp1,actual1,x,ci)
 
       } else if (input$radiorm2 == "95") {
@@ -4005,7 +3691,6 @@ server <- function(input, output){
         x <- input$radiorm1
         ci <- 95
 
-        source("CIplots_rm.R")
         CI_rm(fp1,actual1,x,ci)
 
 
@@ -4018,7 +3703,6 @@ server <- function(input, output){
         x <- input$radiorm1
         ci <- 99
 
-        source("CIplots_rm.R")
         CI_rm(fp1,actual1,x,ci)
 
       }
@@ -4039,7 +3723,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'Remnant GM (1, 1) model'
 
-        source("CIplots_rm.R")
         plotrm(x0,x0cap2,ci,model)
 
       } else if (input$radiorm2 == "95") {
@@ -4049,7 +3732,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'Remnant GM (1, 1) model'
 
-        source("CIplots_rm.R")
         plotrm(x0,x0cap2,ci,model)
 
 
@@ -4060,7 +3742,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'Remnant GM (1, 1) model'
 
-        source("CIplots_rm.R")
         plotrm(x0,x0cap2,ci,model)
 
       }
@@ -4074,7 +3755,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'TGM (1, 1) model'
 
-        source("CIplots_rm.R")
         plotrm(x0,x0cap2,ci,model)
 
 
@@ -4085,7 +3765,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'TGM (1, 1) model'
 
-        source("CIplots_rm.R")
         plotrm(x0,x0cap2,ci,model)
 
 
@@ -4096,7 +3775,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'TGM (1, 1) model'
 
-        source("CIplots_rm.R")
         plotrm(x0,x0cap2,ci,model)
 
       }
@@ -4108,14 +3786,13 @@ server <- function(input, output){
 
   #' GM (1, 3) model Fitted - reactive
   #' Fitted values
-  x0capgm13 <- reactive({
+  x0capgm13 <- eventReactive(input$file8, {
 
     x0 <- datmv()
     x1 <- x0[ ,1]
     x2 <- x0[ ,2]
     x3 <- x0[ ,3]
 
-    source("mv.R")
     gm13(x1,x2,x3)
 
   })
@@ -4124,14 +3801,13 @@ server <- function(input, output){
 
   #' IGM (1, 3) model Fitted - reactive
   #' Fitted values
-  x0capigm13 <- reactive({
+  x0capigm13 <- eventReactive(input$file8, {
 
     x0 <- datmv()
     x1 <- x0[ ,1]
     x2 <- x0[ ,2]
     x3 <- x0[ ,3]
 
-    source("mv.R")
     igm13(x1,x2,x3)
 
   })
@@ -4139,7 +3815,7 @@ server <- function(input, output){
 
   #' DBGM (1, 2) model Fitted - reactive
   #' Fitted values
-  x0capdbgm12 <- reactive({
+  x0capdbgm12 <- eventReactive(c(input$file81, input$file811),{
 
     x0 <- datinmv()
     x01 <- x0[ ,1]
@@ -4147,7 +3823,6 @@ server <- function(input, output){
 
     dat_a <- c(datoutmv())
 
-    source("mv.R")
     dbgm12(x01,x02,dat_a)
 
   })
@@ -4155,14 +3830,14 @@ server <- function(input, output){
 
   #' GMC (1, 2) model Fitted - reactive
   #' Fitted values
-  x0capgmc12 <- reactive({
+  x0capgmc12 <- eventReactive(c(input$file81, input$file811),{
 
     x0 <- datinmv()
     x01 <- x0[ ,1]
     x02 <- x0[ ,2]
 
     dat_a <- c(datoutmv())
-    source("mv.R")
+
     gmc12(x01,x02,dat_a)
 
   })
@@ -4171,7 +3846,7 @@ server <- function(input, output){
 
   #' GMC_g (1, 2) model Fitted - reactive
   #' Fitted values
-  x0capgmcg12 <- reactive({
+  x0capgmcg12 <- eventReactive(c(input$file81, input$file811),{
 
     x0 <- datinmv()
     x01 <- x0[ ,1]
@@ -4179,7 +3854,6 @@ server <- function(input, output){
 
     dat_a <- c(datoutmv())
 
-    source("mv.R")
     gmcg12(x01,x02,dat_a)
 
   })
@@ -4187,13 +3861,12 @@ server <- function(input, output){
 
   #' NHMGM_p (1, 2) model when p = 1 Fitted - reactive
   #' Fitted values
-  x0capnhmgm1 <- reactive({
+  x0capnhmgm1 <- eventReactive(input$file8, {
 
     x0 <- datmv()
     x01 <- x0[ ,1]
     x02 <- x0[ ,2]
 
-    source("mv.R")
     nhmgm1(x01,x02)
 
   })
@@ -4201,13 +3874,12 @@ server <- function(input, output){
 
   #' NHMGM_p (1, 2) model when p = 2 Fitted - reactive
   #' Fitted values
-  x0capnhmgm2 <- reactive({
+  x0capnhmgm2 <- eventReactive(input$file8, {
 
     x0 <- datmv()
     x01 <- x0[ ,1]
     x02 <- x0[ ,2]
 
-    source("mv.R")
     nhmgm2(x01,x02)
 
   })
@@ -4230,11 +3902,9 @@ server <- function(input, output){
 
       actual1 <- datmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgm13()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfgm13 <- data.frame(actual,Fitted)
 
 
@@ -4250,11 +3920,9 @@ server <- function(input, output){
 
       actual1 <- datmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capigm13()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       dfigm13 <- data.frame(actual,Fitted)
 
 
@@ -4272,8 +3940,7 @@ server <- function(input, output){
       actual <- datmv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capnhmgm1()
       f1 <- fitted[,1]
       f2 <- fitted[,2]
@@ -4299,8 +3966,7 @@ server <- function(input, output){
       actual <- datmv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capnhmgm2()
       f1 <- fitted[,1]
       f2 <- fitted[,2]
@@ -4333,8 +3999,7 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgmc12()
       fitted2 <- t(fitted1)
       Fitted <- fitted2[1:n]
@@ -4355,8 +4020,7 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgmc12()
       fitted2 <- t(fitted1)
       Fitted <- fitted2[1:n]
@@ -4372,15 +4036,16 @@ server <- function(input, output){
               "DOI:10.1016/j.cie.2018.02.042",
               sep = "\n")
       })
+
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capdbgm12()
       fitted2 <- t(fitted1)
       Fitted <- fitted2[1:n]
       dfdbgm12 <- data.frame(actual,Fitted)
     }
+
   })
 
 
@@ -4395,8 +4060,7 @@ server <- function(input, output){
 
       actual1 <- datmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgm13()
       x <- input$radiomv1
       fitted3 <- tail(fitted1,4)
@@ -4409,8 +4073,7 @@ server <- function(input, output){
 
       actual1 <- datmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capigm13()
       x <- input$radiomv1
       fitted3 <- tail(fitted1,4)
@@ -4424,8 +4087,7 @@ server <- function(input, output){
       actual <- datmv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capnhmgm1()
       x <- input$radiomv1
       f1 <- fitted[,1]
@@ -4449,8 +4111,7 @@ server <- function(input, output){
       actual <- datmv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capnhmgm2()
       x <- input$radiomv1
       f1 <- fitted[,1]
@@ -4481,8 +4142,7 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgmc12()
       x <- input$radiooutmv1
       fitted3 <- tail(fitted1,4)
@@ -4495,8 +4155,7 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgmcg12()
       x <- input$radiooutmv1
       fitted3 <- tail(fitted1,4)
@@ -4509,8 +4168,7 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capdbgm12()
       x <- input$radiooutmv1
       fitted3 <- tail(fitted1,4)
@@ -4529,11 +4187,9 @@ server <- function(input, output){
 
       actual1 <- datmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgm13()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(actual,Fitted)*100
       RMSE <- rmse(actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -4542,11 +4198,9 @@ server <- function(input, output){
 
       actual1 <- datmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capigm13()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(actual,Fitted)*100
       RMSE <- rmse(actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -4556,8 +4210,7 @@ server <- function(input, output){
       actual <- datmv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capnhmgm1()
       f1 <- fitted[,1]
       f2 <- fitted[,2]
@@ -4580,8 +4233,7 @@ server <- function(input, output){
       actual <- datmv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capnhmgm2()
       f1 <- fitted[,1]
       f2 <- fitted[,2]
@@ -4612,11 +4264,9 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgmc12()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(actual,Fitted)*100
       RMSE <- rmse(actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -4625,11 +4275,9 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capgmcg12()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(actual,Fitted)*100
       RMSE <- rmse(actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -4639,11 +4287,9 @@ server <- function(input, output){
 
       actual1 <- datinmv()
       actual <- actual1[ ,1]
-      actual2 <- t(actual)
-      n <- length(actual2)
+      n <- length(actual)
       fitted1 <- x0capdbgm12()
-      fitted2 <- t(fitted1)
-      Fitted <- fitted2[1:n]
+      Fitted <- fitted1[1:n]
       MAPE <- mape(actual,Fitted)*100
       RMSE <- rmse(actual,Fitted)
       pe <- data.frame(MAPE,RMSE)
@@ -4665,39 +4311,36 @@ server <- function(input, output){
         output$cimv <- renderPrint({input$radiomv2})
 
         fp1 <- x0capgm13()
-        actual1 <- datmv()
-        actual <- actual1[ ,1]
+        actual <- datmv()
+        actual1 <- actual[ ,1]
         x <- input$radiomv1
         ci <- 90
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiomv2 == "95") {
 
         output$cimv <- renderPrint({input$radiomv2})
 
         fp1 <- x0capgm13()
-        actual1 <- datmv()
-        actual <- actual1[ ,1]
+        actual <- datmv()
+        actual1 <- actual[ ,1]
         x <- input$radiomv1
         ci <- 95
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiomv2 == "99") {
 
         output$cimv <- renderPrint({input$radiomv2})
 
         fp1 <- x0capgm13()
-        actual1 <- datmv()
-        actual <- actual1[ ,1]
+        actual <- datmv()
+        actual1 <- actual[ ,1]
         x <- input$radiomv1
         ci <- 99
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
       }
 
 
@@ -4708,39 +4351,36 @@ server <- function(input, output){
         output$cimv <- renderPrint({input$radiomv2})
 
         fp1 <- x0capigm13()
-        actual1 <- datmv()
-        actual <- actual1[ ,1]
+        actual <- datmv()
+        actual1 <- actual[ ,1]
         x <- input$radiomv1
         ci <- 90
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiomv2 == "95") {
 
         output$cimv <- renderPrint({input$radiomv2})
 
         fp1 <- x0capigm13()
-        actual1 <- datmv()
-        actual <- actual1[ ,1]
+        actual <- datmv()
+        actual1 <- actual[ ,1]
         x <- input$radiomv1
         ci <- 95
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiomv2 == "99") {
 
         output$cimv <- renderPrint({input$radiomv2})
 
         fp1 <- x0capigm13()
-        actual1 <- datmv()
-        actual <- actual1[ ,1]
+        actual <- datmv()
+        actual1 <- actual[ ,1]
         x <- input$radiomv1
         ci <- 99
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       }
 
@@ -4757,7 +4397,6 @@ server <- function(input, output){
         x <- input$radiomv1
         ci <- 90
 
-        source("CI_MV.R")
         CI_nhmgmp(fp1,x01,x02,x,ci)
 
 
@@ -4772,7 +4411,6 @@ server <- function(input, output){
         x <- input$radiomv1
         ci <- 95
 
-        source("CI_MV.R")
         CI_nhmgmp(fp1,x01,x02,x,ci)
 
 
@@ -4787,7 +4425,6 @@ server <- function(input, output){
         x <- input$radiomv1
         ci <- 99
 
-        source("CI_MV.R")
         CI_nhmgmp(fp1,x01,x02,x,ci)
       }
 
@@ -4804,7 +4441,6 @@ server <- function(input, output){
         x <- input$radiomv1
         ci <- 90
 
-        source("CI_MV.R")
         CI_nhmgmp(fp1,x01,x02,x,ci)
 
       } else if (input$radiomv2 == "95") {
@@ -4818,7 +4454,6 @@ server <- function(input, output){
         x <- input$radiomv1
         ci <- 95
 
-        source("CI_MV.R")
         CI_nhmgmp(fp1,x01,x02,x,ci)
 
 
@@ -4833,7 +4468,6 @@ server <- function(input, output){
         x <- input$radiomv1
         ci <- 99
 
-        source("CI_MV.R")
         CI_nhmgmp(fp1,x01,x02,x,ci)
 
       }
@@ -4852,26 +4486,24 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capgmc12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 90
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       } else if (input$radiooutmv2 == "95") {
 
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capgmc12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 95
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
 
       } else if (input$radiooutmv2 == "99") {
@@ -4879,13 +4511,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capgmc12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 99
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       }
 
@@ -4896,13 +4527,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capgmcg12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 90
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
 
       } else if (input$radiooutmv2 == "95") {
@@ -4910,13 +4540,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capgmcg12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 95
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
 
 
@@ -4925,13 +4554,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capgmcg12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 99
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       }
 
@@ -4943,13 +4571,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capdbgm12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 90
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
 
       } else if (input$radiooutmv2 == "95") {
@@ -4957,13 +4584,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capdbgm12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 95
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
 
       } else if (input$radiooutmv2 == "99") {
@@ -4971,13 +4597,12 @@ server <- function(input, output){
         output$cioutmv <- renderPrint({input$radiooutmv2})
 
         fp1 <- x0capdbgm12()
-        actual1 <- datinmv()
-        actual <- actual1[ ,1]
+        actual <- datinmv()
+        actual1 <- actual[ ,1]
         x <- input$radiooutmv1
         ci <- 99
 
-        source("CI_MV.R")
-        CIvalue(fp1,actual,x,ci)
+        CIvalue(fp1,actual1,x,ci)
 
       }
     }
@@ -4997,7 +4622,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GM (1, 3) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5008,7 +4632,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GM (1, 3) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
       } else if (input$radiomv2 == "99") {
@@ -5018,7 +4641,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GM (1, 3) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
       }
 
@@ -5031,7 +4653,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'IGM (1, 3) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5043,7 +4664,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'IGM (1, 3) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
       } else if (input$radiomv2 == "99") {
@@ -5053,7 +4673,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'IGM (1, 3) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
       }
 
@@ -5067,7 +4686,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'NHMGM_1 (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv2(actual1,fitted,ci,model)
 
       } else if (input$radiomv2 == "95") {
@@ -5077,7 +4695,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'NHMGM_1 (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv2(actual1,fitted,ci,model)
 
 
@@ -5088,7 +4705,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'NHMGM_1 (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv2(actual1,fitted,ci,model)
 
       }
@@ -5102,7 +4718,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'NHMGM_2 (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv2(actual1,fitted,ci,model)
 
 
@@ -5113,7 +4728,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'NHMGM_2 (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv2(actual1,fitted,ci,model)
 
 
@@ -5126,7 +4740,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'NHMGM_2 (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv2(actual1,fitted,ci,model)
 
 
@@ -5148,7 +4761,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GMC (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5159,7 +4771,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GMC (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
       } else if (input$radiooutmv2 == "99") {
@@ -5169,7 +4780,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GMC (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5185,7 +4795,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'GMC_g (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5196,7 +4805,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'GMC_g (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
       } else if (input$radiooutmv2 == "99") {
@@ -5206,7 +4814,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'GMC_g (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5222,7 +4829,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'DBGM (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5234,7 +4840,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'DBGM (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
       } else if (input$radiooutmv2 == "99") {
@@ -5244,7 +4849,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'DBGM (1, 2) model'
 
-        source("plots_MV.R")
         plotsmv1(actual1,fp1,ci,model)
 
 
@@ -5256,36 +4860,33 @@ server <- function(input, output){
 
   #' IG-NDGM (1, 2) model Fitted - reactive
   #' Fitted values
-  x0capigndgm12 <- reactive({
+  x0capigndgm12 <- eventReactive(input$file9, {
 
     x0 <- datimv()
     LB <- x0[ ,1]
     UB <- x0[ ,2]
 
-    source("imv.R")
     igndgm12(LB,UB)
 
   })
 
   #' MDBGM (1, 2) model Fitted - reactive
   #' Fitted values
-  x0capmdbgm12 <- reactive({
+  x0capmdbgm12 <- eventReactive(c(input$file91,input$file911),{
+
 
     data <- datinimv()
-    x0 <- data.frame(data)
-    x01L <- x0[ ,1]
-    x01U <- x0[ ,2]
-    x02L <- x0[ ,3]
-    x02U <- x0[ ,4]
+    x01L <- as.numeric(unlist(data[ ,1]))
+    x01U <- as.numeric(unlist(data[ ,2]))
+    x02L <- as.numeric(unlist(data[ ,3]))
+    x02U <- as.numeric(unlist(data[ ,4]))
 
     data_A <- datoutimv()
-    dfdata_a <- data.frame(data_A)
-    x01La <- dfdata_a[ ,1]
-    x01Ua <- dfdata_a[ ,2]
-    x02La <- dfdata_a[ ,3]
-    x02Ua <- dfdata_a[ ,4]
+    x01La <- as.numeric(unlist(data_A[ ,1]))
+    x01Ua <- as.numeric(unlist(data_A[ ,2]))
+    x02La <- as.numeric(unlist(data_A[ ,3]))
+    x02Ua <- as.numeric(unlist(data_A[ ,4]))
 
-    source("imv.R")
     mdbgm12(x01L,x01U,x02L,x02U,x01La,x01Ua,x02La,x02Ua)
 
   })
@@ -5308,8 +4909,7 @@ server <- function(input, output){
       actual <- datimv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capigndgm12()
       f1 <- fitted[,1]
       f2 <- fitted[,2]
@@ -5344,8 +4944,7 @@ server <- function(input, output){
       actual <- datinimv()
       A1 <- actual[,1]
       A2 <- actual[,2]
-      a1 <- t(A1)
-      n <- length(a1)
+      n <- length(A1)
       fitted <- x0capmdbgm12()
       f1 <- fitted[,1]
       f2 <- fitted[,2]
@@ -5472,12 +5071,11 @@ server <- function(input, output){
         output$ciimv <- renderPrint({input$radioimv2})
 
         actual1 <- datimv()
-        fp11 <- x0capigndgm12()
+        fp1 <- x0capigndgm12()
         x <- input$radioimv1
         ci <- 90
 
-        source("CIplots_igndgm12.R")
-        CIvalue(fp11,actual1,x,ci)
+        CI_igndgm(fp1,actual1,x,ci)
 
 
       } else if (input$radioimv2 == "95") {
@@ -5485,24 +5083,22 @@ server <- function(input, output){
         output$ciimv <- renderPrint({input$radioimv2})
 
         actual1 <- datimv()
-        fp11 <- x0capigndgm12()
+        fp1 <- x0capigndgm12()
         x <- input$radioimv1
         ci <- 95
 
-        source("CIplots_igndgm12.R")
-        CIvalue(fp11,actual1,x,ci)
+        CI_igndgm(fp1,actual1,x,ci)
 
       } else if (input$radioimv2 == "99") {
 
         output$ciimv <- renderPrint({input$radioimv2})
 
         actual1 <- datimv()
-        fp11 <- x0capigndgm12()
+        fp1 <- x0capigndgm12()
         x <- input$radioimv1
         ci <- 99
 
-        source("CIplots_igndgm12.R")
-        CIvalue(fp11,actual1,x,ci)
+        CI_igndgm(fp1,actual1,x,ci)
 
       }
 
@@ -5525,7 +5121,6 @@ server <- function(input, output){
         x <- input$radiooutimv1
         ci <- 90
 
-        source("CIplots_MDBGM.R")
         CI_mdbgm(fitted1,actual1,x,ci)
 
 
@@ -5539,7 +5134,6 @@ server <- function(input, output){
         x <- input$radiooutimv1
         ci <- 95
 
-        source("CIplots_MDBGM.R")
         CI_mdbgm(fp1,actual1,x,ci)
 
 
@@ -5552,7 +5146,6 @@ server <- function(input, output){
         x <- input$radiooutimv1
         ci <- 99
 
-        source("CIplots_MDBGM.R")
         CI_mdbgm(fp1,actual1,x,ci)
       }
     }
@@ -5572,7 +5165,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'IG-NDGM (1, 2) model'
 
-        source("CIplots_igndgm12.R")
         plotsigndgm(actual,pred,ci,model)
 
 
@@ -5583,7 +5175,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'IG-NDGM (1, 2) model'
 
-        source("CIplots_igndgm12.R")
         plotsigndgm(actual,pred,ci,model)
 
       } else if (input$radioimv2 == "99") {
@@ -5593,7 +5184,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'IG-NDGM (1, 2) model'
 
-        source("CIplots_igndgm12.R")
         plotsigndgm(actual,pred,ci,model)
 
       }
@@ -5615,7 +5205,6 @@ server <- function(input, output){
         ci <- 90
         model <- 'MDBGM (1, 2) model'
 
-        source("CIplots_MDBGM.R")
         plots_mdbgm12(actual,pred,ci,model)
 
 
@@ -5626,7 +5215,6 @@ server <- function(input, output){
         ci <- 95
         model <- 'MDBGM (1, 2) model'
 
-        source("CIplots_MDBGM.R")
         plots_mdbgm12(actual,pred,ci,model)
 
 
@@ -5638,7 +5226,6 @@ server <- function(input, output){
         ci <- 99
         model <- 'MDBGM (1, 2) model'
 
-        source("CIplots_MDBGM.R")
         plots_mdbgm12(actual,pred,ci,model)
 
       }

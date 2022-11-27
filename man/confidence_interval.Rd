@@ -3,6 +3,7 @@
 \alias{CIvalue}
 \alias{CI_rm}
 \alias{CI_nhmgmp}
+\alias{CI_igndgm}
 \alias{CI_mdbgm}
 
 
@@ -17,6 +18,7 @@
 CIvalue(fp1,actual1,x,ci)
 CI_rm(fp1,actual1,x,ci)
 CI_nhmgmp(fp1,x01,x02,x,ci)
+CI_igndgm(fp1,actual1,x,ci)
 CI_mdbgm(fp1,actual1,x,ci)
 }
 
@@ -87,12 +89,15 @@ confidence interval of predicted values
 
   u <- numeric(t)
   l <- numeric(t)
+
   for (i in 1:t) {
     u[i] = predicted[i] + (t.val * (sqrt(mse) * sqrt(i)))
     l[i] = predicted[i] - (t.val * (sqrt(mse) * sqrt(i)))
   }
+
   UpperBound <- c(u[1:t])
   LowerBound <- c(l[1:t])
+
   CIset <- data.frame(LowerBound,UpperBound)
   CIset
 

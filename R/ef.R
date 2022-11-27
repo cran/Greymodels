@@ -714,18 +714,22 @@ egm11 <- function(k,x0,k_A,x0_A){
   vector_K <- c(K)
 
   # Compute restored values (fitted values x0cap)
+
   x0cap1 = function(vector_K) {
 
     if(vector_K == 0) {
-      x0[1]
 
-    } else if( vector_K == as.integer(vector_K)) {
-      (x0[1] - (b/a)) * exp(-a*vector_K) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(vector_K-1)) + (b/a) )
+      x0cap1 <- x0[1]
 
-    } else if (vector_K == as.numeric(vector_K))  {
+    } else if(vector_K - (floor(vector_K)) == 0) {
 
-      ( (x0[1] - (b/a)) * exp(-a*vector_K) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(floor(vector_K))) + (b/a) ) ) / (vector_K - floor(vector_K))
+      x0cap1 <- (x0[1] - (b/a)) * exp(-a*vector_K) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(vector_K-1)) + (b/a) )
+
+    } else  {
+
+      x0cap1 <- ( (x0[1] - (b/a)) * exp(-a*vector_K) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(floor(vector_K))) + (b/a) ) ) / (vector_K - floor(vector_K))
     }
+
   }
 
   x0cap <- sapply(vector_K, x0cap1)
@@ -740,18 +744,22 @@ egm11 <- function(k,x0,k_A,x0_A){
   vector_KA <- c(KA)
 
   # Calculate predicted values
+
   x0capA = function(vector_KA) {
 
     if(vector_KA == 0) {
-      x0[1]
 
-    } else if( vector_KA == as.integer(vector_KA)) {
-      (x0[1] - (b/a)) * exp(-a*vector_KA) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(vector_KA-1)) + (b/a) )
+      x0capA <- x0[1]
 
-    } else if (vector_KA == as.numeric(vector_KA))  {
+    } else if(vector_KA - (floor(vector_KA)) == 0) {
 
-      ( (x0[1] - (b/a)) * exp(-a*vector_KA) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(floor(vector_KA))) + (b/a) ) ) / (vector_KA - floor(vector_KA))
+      x0capA <- (x0[1] - (b/a)) * exp(-a*vector_KA) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(vector_KA-1)) + (b/a) )
+
+    } else  {
+
+      x0capA <- ( (x0[1] - (b/a)) * exp(-a*vector_KA) + (b/a) - ( (x0[1] - (b/a)) * exp(-a*(floor(vector_KA))) + (b/a) ) ) / (vector_KA - floor(vector_KA))
     }
+
   }
 
   x0cap4 <- sapply(vector_KA, x0capA)

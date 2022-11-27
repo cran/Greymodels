@@ -1,7 +1,5 @@
 \name{Plots}
-\alias{Plots}
 \alias{plots}
-\alias{plotegm}
 \alias{plotrm}
 \alias{plotsmv1}
 \alias{plotsmv2}
@@ -18,7 +16,6 @@
 
 \usage{
 plots(x0,x0cap2,ci,model)
-plotegm(x0,x0cap2,ci)
 plotrm(x0,x0cap2,ci,model)
 plotsmv1(actual1,fp1,ci,model)
 plotsmv2(actual1,fitted,ci,model)

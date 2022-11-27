@@ -220,7 +220,7 @@ ui <- dashboardPage(skin = "blue",
                                       code("k = (170, 210, 310, 340, 100, 130, 240, 270)"),";",
                                       code("x0 = (536.1, 516.1, 467.4, 453.8, 560, 557.54, 486.1, 436.4)"),";",
                                       code("egm11(k,x0)"),
-                                      ),
+                                    ),
 
                                     box(
                                       title = "Combined models", width = 6, solidHeader = TRUE, status = "primary",
@@ -1470,3 +1470,4 @@ ui <- dashboardPage(skin = "blue",
 
                     )
 )
+

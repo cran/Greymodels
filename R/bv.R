@@ -9,17 +9,19 @@
 #' @importFrom utils tail
 #' @export
 
+# Fitted values
+
 gm11 <- function(x0) {
 
-# x0 is the original data sequence
+  # x0 is the original data sequence
 
-# Calculate AGO
+  # Calculate AGO
   x1 <- cumsum(x0)
 
-# Determine length of x0
+  # Determine length of x0
   n <- length(x0)
 
-# Generate background value sequence Z
+  # Generate background value sequence Z
   b <- numeric(n)
 
   for (i in 1:n){
@@ -58,9 +60,12 @@ gm11 <- function(x0) {
 
   # Fitted and predicted values
   x0cap2 <- c(x0cap,x0cap5)
+
   return(x0cap2)
 
 }
+
+
 
 # Improved background values
 
@@ -68,7 +73,7 @@ gm11 <- function(x0) {
 
 epgm11 <- function(x0) {
 
-# Input data x0
+  # Input data x0
 
   # Calculate AGO
   x1 <- cumsum(x0)
@@ -136,7 +141,7 @@ epgm11 <- function(x0) {
 
 tbgm11 <- function(x0) {
 
-# Input x0
+  # Input x0
 
   nn <- length(x0)
 

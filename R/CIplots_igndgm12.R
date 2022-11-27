@@ -1,12 +1,12 @@
-CIvalue <- function(fp11,actual1,x,ci){
+CI_igndgm <- function(fp1,actual1,x,ci){
 
   LB <- actual1[,1]
   UB <- actual1[,2]
 
   n <- length(LB)
 
-  x0cap2_U <- fp11[,2]
-  x0cap2_L <- fp11[,1]
+  x0cap2_U <- fp1[,2]
+  x0cap2_L <- fp1[,1]
 
   x0cap_U <- x0cap2_U[1:n]
   x0cap_L <- x0cap2_L[1:n]
