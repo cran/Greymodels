@@ -1,3 +1,6 @@
+# The IG-NDGM (1, 2) model
+# Confidence interval of predicted values
+
 CI_igndgm <- function(fp1,actual1,x,ci){
 
   LB <- actual1[,1]

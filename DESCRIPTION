@@ -1,7 +1,7 @@
 Package: Greymodels
 Type: Package
 Title: Shiny App for Grey Forecasting Model
-Version: 2.0
+Version: 2.0.1
 Authors@R: c(person("Jahajeeah", "Havisha",
                     email = "hjahajeeah@utm.ac.mu", 
                     role = c("aut", "cre")),
@@ -17,8 +17,8 @@ Depends: R (>= 4.0.0), dplyr, Metrics, cmna, plotly
 Imports: shiny, shinydashboard, shinyWidgets, ggplot2, readxl,
         particle.swarm.optimisation, scales, expm
 NeedsCompilation: no
-Packaged: 2022-11-27 18:33:03 UTC; User
+Packaged: 2022-12-05 11:34:16 UTC; User
 Author: Jahajeeah Havisha [aut, cre],
   Saib Aslam Aly [aut]
 Repository: CRAN
-Date/Publication: 2022-11-27 19:10:05 UTC
+Date/Publication: 2022-12-05 12:42:35 UTC
